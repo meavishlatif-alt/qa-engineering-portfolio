@@ -24,6 +24,8 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run API tests
+        env:
+          REQRES_API_KEY: ${{ secrets.REQRES_API_KEY }}
         run: npx playwright test tests/api
 
       - name: Run E2E tests

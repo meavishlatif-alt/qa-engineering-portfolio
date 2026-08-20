@@ -66,23 +66,16 @@ private app, so anyone can clone it and run it immediately:
 
 
 
-&#x20;         /\\
-
-&#x20;        /  \\      E2E — 3 tests
-
-&#x20;       / UI \\     Login -> cart -> checkout -> confirmation
-
-&#x20;      /------\\    Slow, expensive, highest confidence
-
-&#x20;     /  API   \\   API — 4 tests
-
-&#x20;    / (fast,   \\  Direct HTTP requests, no browser
-
-&#x20;   /  numerous) \\ Fast, cheap, tests business rules directly
-
-&#x20;   --------------
-
-
+```
+              /\\\\
+             /  \\\\      E2E — 3 tests
+            / UI \\\\     Login -> cart -> checkout -> confirmation
+           /------\\\\    Slow, expensive, highest confidence
+          /  API   \\\\   API — 4 tests
+         / (fast,   \\\\  Direct HTTP requests, no browser
+        /  numerous) \\\\ Fast, cheap, tests business rules directly
+       --------------
+```
 
 
 
@@ -204,7 +197,7 @@ happened, and it's a fair sample of real QA work:
 
 \- \*\*Firefox failed to launch locally\*\* due to a missing Windows system
 
-&#x20; library (`msvcp140\_1.dll`) — unrelated to the test code, confirmed by
+&#x20; library (`msvcp140\\\_1.dll`) — unrelated to the test code, confirmed by
 
 &#x20; Chromium and WebKit passing the identical suite.
 

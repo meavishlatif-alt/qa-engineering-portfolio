@@ -11,9 +11,10 @@ and browser E2E automation in a single framework.
 - **Test pyramid applied, not just diagrammed** — more, faster API-level
   tests; fewer, slower E2E tests reserved for the one journey that
   matters most.
-- **QA strategy work beyond code** — see [Strategy case studies](#strategy-case-studies)
-  below for how I approach risk, test-layer decisions, and automation
-  prioritization on a feature I didn't build the code for.
+- **QA strategy work grounded in the real code** — see [Strategy case studies](#strategy-case-studies)
+  below for how the test cases in this repo were actually chosen, using
+  risk-based prioritization and explicit automation criteria — not
+  written after the fact to sound rigorous.
 - **API testing and browser E2E in the same suite** — one framework, one
   config, two different testing disciplines, run together.
 - **Page Object Model** — locators live in one place per page, not
@@ -97,8 +98,8 @@ qa-engineering-project/
 
 ## Strategy case studies
 [`strategy-case-study/`](./strategy-case-study/) contains three written
-work samples demonstrating QA strategy ownership beyond this repo's own
-code:
+work samples demonstrating QA strategy ownership — grounded in this
+repo's actual tests, not a hypothetical example:
 
 | File | Answers |
 |---|---|

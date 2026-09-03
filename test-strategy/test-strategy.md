@@ -1,101 +1,48 @@
 # Test Strategy
 
-## Approach
-Risk-based, following the test pyramid: fast and numerous at the API/unit
-level, fewer and slower at the E2E level, reserved for the critical
-customer journey only.
+**Purpose:** the overall test strategy for this application — scope, test levels, approach to risk and automation, and completion criteria. This is a planning document, not a status report: it defines *how* testing decisions get made, using the identified test cases as a working example. Specific risk scoring, automation decisions, and suite-organization detail each live in their own document; this one ties the approach together.
 
-## Test Pyramid for this project
+## Scope
 
-| Layer | What belongs here | Where in this repo |
-|---|---|---|
-| API/Integration | Functional correctness of each endpoint - status codes, response shape, positive and negative cases | `tests/api/` |
-| E2E (few, critical only) | The one journey that matters most: login -> add to cart -> checkout -> confirmation | `tests/e2e/checkout.spec.ts` |
-| Negative / edge case | Locked-out login, missing required checkout fields | `tests/e2e/checkout.negative.spec.ts` |
+Testing covers the identified functionality of the application under `standard_user` access — authentication, product browsing and sorting, cart management, checkout, order confirmation, and navigation. Twenty-six test scenarios (TC01-TC26) were identified through exploration and form the working example referenced throughout this strategy.
 
-In a real codebase, unit tests for pure logic (e.g. price calculation,
-discount rules) would sit below the API layer - not demonstrated here
-since this project tests a live application rather than owning its
-source code.
+## Test Levels
 
-**A specific example of this gap:** the checkout total/tax calculation
-is verified in this project at the E2E layer, by comparing the rendered
-total against an expected calculation from cart contents. In a real
-codebase, this calculation would ideally be covered by a unit test
-against the pricing function directly - faster, and independent of the
-UI rendering it correctly. It's tested here at E2E only because that's
-the access level available against a live, third-party demo site - the
-gap is documented rather than left implicit.
+Testing follows a pyramid approach — more coverage at faster, cheaper levels, less at slower, more expensive ones:
 
-Note on terminology: these are called "API tests," not "contract
-tests" - they validate each endpoint's own behavior (status codes,
-response shape), not a formal consumer/provider contract (e.g. via
-Pact). That distinction matters and is kept deliberate throughout this
-project.
+- **Unit** — pure logic (e.g. price/tax calculation) would sit here in a codebase-owning context. Not directly available against a live third-party application, but named explicitly as the ideal home for this class of check, not skipped silently.
+- **API/Integration** — endpoint-level correctness, independent of UI rendering.
+- **UI/E2E** — full user journeys. Reserved for the highest-priority scenarios only; not every test case needs to run at this level.
 
-## What's automated, and why
-- **API tests are automated first.** They're faster, more stable, and
-  test business rules closer to the source of truth than driving
-  everything through the UI.
-- **Only one full E2E happy path is automated**, extended to also verify
-  the checkout total/tax calculation and PDF receipt generation as part
-  of that same flow, rather than as separate large tests.
-- **Negative/security-adjacent scenarios kept separate** from the happy
-  path so a single failing edge case never blocks the critical-path
-  signal.
+## Test Types
 
-## Cross-browser, responsive, and accessibility testing
+- **Functional** — does the feature behave correctly under normal use.
+- **Negative** — does the system fail safely under invalid input or unauthorized access.
+- **Regression** — a maintained subset re-run to catch reintroduced defects.
+- **Non-functional** — cross-browser consistency, responsiveness, accessibility, and performance. Treated as a deliberate category of risk, not an afterthought, even where full automated coverage isn't yet built.
 
-**Cross-browser rendering** matters here specifically because a real
-finding during testing was a CSS layout issue: a login error message
-("Epic sadface: ...") was visually truncated inside its container on
-one browser configuration, even though the full text was confirmed
-present in the DOM via inspection - a rendering/overflow bug, not a
-content bug. This is exactly the class of issue that only surfaces when
-the same page is checked across multiple rendering engines, which is
-why this project's `playwright.config.ts` already runs against three
-browser projects (Chromium, Firefox, WebKit) rather than one - not
-originally added for this specific bug, but exactly the kind of case
-that justifies keeping it that way.
+## Risk Approach
 
-**Responsive/screen-size testing** is the natural extension of the same
-idea: a container that renders correctly at one viewport width can still
-truncate or overflow at another. Playwright supports this directly via
-device emulation profiles and manual viewport sizing
-(`page.setViewportSize()`), which would be the next step to formally
-add coverage for this class of bug rather than relying on catching it
-by chance during manual exploration.
+Priority is assigned through structured risk analysis — impact and likelihood assessed per scenario, not assumed from intuition. See `strategy-case-study/risk-based-testing-approach.md` for the full method and the worked register (TC01-TC26). This strategy treats risk as the primary driver of test depth: higher-priority scenarios get more test types and more scrutiny; lower-priority ones get basic coverage only.
 
-**Accessibility testing** - a single line, since it's out of scope for
-this project's current automation: a full implementation would use a
-tool such as axe-core (via `@axe-core/playwright`) or Playwright's
-built-in accessibility snapshot support to check for issues like
-insufficient color contrast, missing labels, and keyboard-navigation
-gaps, rather than relying on manual review alone.
+## Automation Approach
 
-## What's deliberately NOT automated here
-- Visual/pixel-level UI regression - would use a dedicated visual-diff tool.
-- Performance/load testing - would use k6 or JMeter, run on a schedule,
-  not on every commit.
-- Full cross-browser matrix on every push - the three Playwright projects
-  above support it, but CI runs it on a lighter cadence to keep pipeline
-  time reasonable.
+Automation is a suitability decision, separate from priority. A scenario becomes a good automation candidate when it's stable, deterministic, frequently exercised, and cheap enough to maintain relative to its value — not simply because it's high priority. See `strategy-case-study/automation-decision-matrix.md` for the full framework and applied decisions per test case.
 
-## CI/CD
-Every push and pull request to `main` runs the full suite via GitHub
-Actions (`.github/workflows/tests.yml`): install, install browsers, run
-API tests, run E2E tests, upload the HTML report as a build artifact
-regardless of pass/fail, so failures are always inspectable.
+## Suite Organization Approach
 
-## AI-assisted testing
-Used AI as an accelerator, not as the strategist: generating first-draft
-test skeletons and suggesting edge cases I then reviewed and adjusted
-myself, rather than accepting generated tests as-is. Test scope,
-prioritisation, and pass/fail judgement stayed a manual decision.
+As the set of test cases grows, structure and metadata (functional area, priority, regression membership, automation status) keep the suite navigable and queryable rather than an unmanaged list. See `strategy-case-study/test-suite-organization-and-rationalization.md` for the full approach, including how to extract subsets for regression, a specific release, or a specific feature.
 
-## Known limitations
-- This targets a public demo app, so certain real-world concerns (real
-  payment gateways, real account creation, real inventory/stock state)
-  aren't representable here - noted explicitly rather than glossed over.
-- Accessibility and full responsive/viewport testing are documented as
-  an approach above, not yet implemented as automated checks.
+## Entry and Exit Criteria
+
+**Entry criteria** — testing a feature begins once it reaches Definition of Ready (DoR): expected behavior defined clearly enough to assess pass/fail. Where behavior is ambiguous (see TC26 in the risk register), testing is deferred until clarified rather than guessed at.
+
+**Exit criteria** — a feature is considered adequately tested once it reaches Definition of Done (DoD) from a QA perspective: all Highest and High priority scenarios pass, confirmed defects are logged with evidence, and open questions are either resolved or explicitly accepted as known gaps rather than silently ignored.
+
+## Tools
+
+Test management and traceability approach demonstrated using Jira/Xray conventions (see `strategy-case-study/test-suite-organization-and-rationalization.md`); the same principles apply with any equivalent tool (TestRail, Azure DevOps, qTest).
+
+## Relationship to the automation project in this repository
+
+The Playwright/TypeScript suite in `tests/` is a separate, hands-on implementation exercise — proof of automation and CI/CD capability, not the definition of this strategy's scope. It automates a small set of API tests against a public REST API and one critical E2E journey (login through checkout) against a public e-commerce demo site, running in a GitHub Actions pipeline on every push — see the project README for the full breakdown. This strategy stands on its own and would apply the same way regardless of which specific scenarios happen to be coded up at any given time.
